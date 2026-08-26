@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minha Loja</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+
+    body {
+      background: #f4f6f9;
+      color: #222;
+      line-height: 1.5;
+    }
+
+    header {
+      background: #1a1a2e;
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+    }
+
+    .btn {
+      background: #4f46e5;
+      color: white;
+      border: none;
+      padding: 0.55rem 1.1rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: #4338ca;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #ffffff80;
+    }
+
+    .btn-outline:hover {
+      background: #ffffff20;
+    }
+
+    .btn-danger {
+      background: #dc2626;
+    }
+
+    .btn-danger:hover {
+      background: #b91c1c;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    /* Layout do admin (só aparece quando logado) */
+    .admin-layout {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 800px) {
+      .admin-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      margin-bottom: 1.5rem;
+    }
+
+    h2 {
+      margin-bottom: 1.2rem;
+      font-size: 1.25rem;
+      color: #1a1a2e;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.3rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 0.7rem 0.9rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1.2rem;
+    }
+
+    .product-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+      transition: transform 0.2s;
+    }
+
+    .product-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .product-card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      background: #eee;
+    }
+
+    .product-info {
+      padding: 1rem;
+    }
+
+    .product-info h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .price {
+      color: #059669;
+      font-weight: 700;
+      font-size: 1.15rem;
+      margin: 0.4rem 0;
+    }
+
+    .country {
+      font-size: 0.85rem;
+      color: #6b7280;
+      margin-bottom: 0.5rem;
+    }
+
+    .desc {
+      font-size: 0.9rem;
+      color: #4b5563;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .empty {
+      text-align: center;
+      color: #9ca3af;
+      padding: 2rem;
+      grid-column: 1 / -1;
+    }
+
+    .preview {
+      margin-top: 0.5rem;
+      max-width: 120px;
+      border-radius: 8px;
+      display: none;
+    }
+
+    /* Modal de login */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .modal {
+      background: white;
+      padding: 2rem;
+      border-radius: 14px;
+      width: 90%;
+      max-width: 380px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+
+    .modal h3 {
+      margin-bottom: 1rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 0.8rem;
+      margin-top: 0.5rem;
+    }
+
+    .modal-actions button {
+      flex: 1;
+    }
+
+    .error-msg {
+      color: #dc2626;
+      font-size: 0.9rem;
+      margin-bottom: 0.8rem;
+      display: none;
+    }
+
+    /* Esconde o formulário por padrão */
+    #adminPanel {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Minha Loja</h1>
+  <div class="header-actions">
+    <button class="btn btn-outline" id="btnLogin" onclick="abrirLogin()">Área do Dono</button>
+    <button class="btn btn-danger" id="btnLogout" style="display:none;" onclick="sair()">Sair</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Painel do Dono (só aparece quando logado) -->
+  <div id="adminPanel">
+    <div class="admin-layout">
+      <div class="card">
+        <h2>Adicionar Novo Produto</h2>
+        
+        <form id="productForm">
+          <label for="name">Nome do Produto *</label>
+          <input type="text" id="name" required placeholder="Ex: Camiseta Premium">
+
+          <label for="price">Preço (R$) *</label>
+          <input type="number" id="price" step="0.01" min="0" required placeholder="Ex: 79.90">
+
+          <label for="description">Descrição *</label>
+          <textarea id="description" required placeholder="Descreva o produto..."></textarea>
+
+          <label for="country">País de Origem / Entrega</label>
+          <select id="country">
+            <option value="Brasil">Brasil</option>
+            <option value="China">China</option>
+            <option value="Estados Unidos">Estados Unidos</option>
+            <option value="Portugal">Portugal</option>
+            <option value="Argentina">Argentina</option>
+            <option value="Outro">Outro</option>
+          </select>
+
+          <label for="photo">Foto do Produto</label>
+          <input type="file" id="photo" accept="image/*">
+          <img id="photoPreview" class="preview" alt="Prévia">
+
+          <button type="submit" class="btn">Adicionar Produto</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Produtos Cadastrados</h2>
+        <div id="productsListAdmin" class="products-grid">
+          <div class="empty">Nenhum produto adicionado ainda.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vitrine pública (sempre visível para visitantes) -->
+  <div id="publicView">
+    <div class="card">
+      <h2>Nossos Produtos</h2>
+      <div id="productsListPublic" class="products-grid">
+        <div class="empty">Nenhum produto disponível no momento.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal de Login -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal">
+    <h3>Área do Dono</h3>
+    <p style="margin-bottom:1rem; color:#6b7280; font-size:0.95rem;">
+      Digite a senha para acessar o painel de cadastro.
+    </p>
+    <div class="error-msg" id="errorMsg">Senha incorreta!</div>
+    <label for="password">Senha</label>
+    <input type="password" id="password" placeholder="Digite a senha">
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="fecharLogin()">Cancelar</button>
+      <button class="btn" onclick="verificarSenha()">Entrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ===================== CONFIGURAÇÃO =====================
+  // Altere a senha abaixo para a que você quiser
+  const SENHA_DONO = "minhasenha123";
+  // ========================================================
+
+  const form = document.getElementById('productForm');
+  const productsListAdmin = document.getElementById('productsListAdmin');
+  const productsListPublic = document.getElementById('productsListPublic');
+  const photoInput = document.getElementById('photo');
+  const photoPreview = document.getElementById('photoPreview');
+  const adminPanel = document.getElementById('adminPanel');
+  const publicView = document.getElementById('publicView');
+  const btnLogin = document.getElementById('btnLogin');
+  const btnLogout = document.getElementById('btnLogout');
+  const loginModal = document.getElementById('loginModal');
+  const errorMsg = document.getElementById('errorMsg');
+
+  let products = JSON.parse(localStorage.getItem('products')) || [];
+  let isLogged = sessionStorage.getItem('isOwner') === 'true';
+
+  // Prévia da foto
+  photoInput.addEventListener('change', function() {
+    const file = this.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        photoPreview.src = e.target.result;
+        photoPreview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Renderizar produtos
+  function renderProducts() {
+    const html = products.length === 0 
+      ? '<div class="empty">Nenhum produto disponível no momento.</div>'
+      : products.map(p => `
+          <div class="product-card">
+            <img src="${p.photo || 'https://via.placeholder.com/300x200?text=Sem+Foto'}" alt="${p.name}">
+            <div class="product-info">
+              <h3>${p.name}</h3>
+              <div class="price">R$ ${parseFloat(p.price).toFixed(2)}</div>
+              <div class="country">📍 ${p.country}</div>
+              <p class="desc">${p.description}</p>
+            </div>
+          </div>
+        `).join('');
+
+    productsListPublic.innerHTML = html;
+    productsListAdmin.innerHTML = html;
+  }
+
+  // Atualiza a interface conforme o status de login
+  function atualizarInterface() {
+    if (isLogged) {
+      adminPanel.style.display = 'block';
+      publicView.style.display = 'none';
+      btnLogin.style.display = 'none';
+      btnLogout.style.display = 'inline-block';
+    } else {
+      adminPanel.style.display = 'none';
+      publicView.style.display = 'block';
+      btnLogin.style.display = 'inline-block';
+      btnLogout.style.display = 'none';
+    }
+  }
+
+  // Login
+  function abrirLogin() {
+    loginModal.style.display = 'flex';
+    document.getElementById('password').value = '';
+    errorMsg.style.display = 'none';
+    document.getElementById('password').focus();
+  }
+
+  function fecharLogin() {
+    loginModal.style.display = 'none';
+  }
+
+  function verificarSenha() {
+    const senha = document.getElementById('password').value;
+    if (senha === SENHA_DONO) {
+      isLogged = true;
+      sessionStorage.setItem('isOwner', 'true');
+      fecharLogin();
+      atualizarInterface();
+    } else {
+      errorMsg.style.display = 'block';
+    }
+  }
+
+  // Permitir Enter no campo de senha
+  document.getElementById('password').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') verificarSenha();
+  });
+
+  // Sair
+  function sair() {
+    isLogged = false;
+    sessionStorage.removeItem('isOwner');
+    atualizarInterface();
+  }
+
+  // Adicionar produto
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const name = document.getElementById('name').value.trim();
+    const price = document.getElementById('price').value;
+    const description = document.getElementById('description').value.trim();
+    const country = document.getElementById('country').value;
+    const photoFile = photoInput.files[0];
+
+    if (photoFile) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        salvarProduto(name, price, description, country, e.target.result);
+      };
+      reader.readAsDataURL(photoFile);
+    } else {
+      salvarProduto(name, price, description, country, null);
+    }
+  });
+
+  function salvarProduto(name, price, description, country, photo) {
+    products.push({ name, price, description, country, photo });
+    localStorage.setItem('products', JSON.stringify(products));
+    renderProducts();
+    form.reset();
+    photoPreview.style.display = 'none';
+  }
+
+  // Iniciar
+  renderProducts();
+  atualizarInterface();
+</script>
+
+</body>
+</html>
