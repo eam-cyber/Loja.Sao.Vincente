@@ -78,7 +78,6 @@
       padding: 0 1rem;
     }
 
-    /* Layout do admin (só aparece quando logado) */
     .admin-layout {
       display: grid;
       grid-template-columns: 1fr 1.4fr;
@@ -132,6 +131,31 @@
       min-height: 90px;
     }
 
+    .sizes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 0.8rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .size-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .size-item label {
+      margin-bottom: 0;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    .size-item input {
+      margin-bottom: 0;
+      text-align: center;
+      padding: 0.5rem;
+    }
+
     .products-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -173,10 +197,20 @@
       margin: 0.4rem 0;
     }
 
-    .country {
+    .sizes {
       font-size: 0.85rem;
-      color: #6b7280;
-      margin-bottom: 0.5rem;
+      color: #4b5563;
+      margin: 0.4rem 0 0.6rem;
+      line-height: 1.4;
+    }
+
+    .sizes span {
+      display: inline-block;
+      background: #f3f4f6;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      margin: 0.15rem 0.2rem 0.15rem 0;
+      font-weight: 500;
     }
 
     .desc {
@@ -202,7 +236,6 @@
       display: none;
     }
 
-    /* Modal de login */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -243,7 +276,6 @@
       display: none;
     }
 
-    /* Esconde o formulário por padrão */
     #adminPanel {
       display: none;
     }
@@ -261,7 +293,7 @@
 
 <div class="container">
 
-  <!-- Painel do Dono (só aparece quando logado) -->
+  <!-- Painel do Dono -->
   <div id="adminPanel">
     <div class="admin-layout">
       <div class="card">
@@ -276,6 +308,34 @@
 
           <label for="description">Descrição *</label>
           <textarea id="description" required placeholder="Descreva o produto..."></textarea>
+
+          <label>Tamanhos e Quantidade de Peças</label>
+          <div class="sizes-grid">
+            <div class="size-item">
+              <label for="qtyPP">PP</label>
+              <input type="number" id="qtyPP" min="0" value="0" placeholder="0">
+            </div>
+            <div class="size-item">
+              <label for="qtyP">P</label>
+              <input type="number" id="qtyP" min="0" value="0" placeholder="0">
+            </div>
+            <div class="size-item">
+              <label for="qtyM">M</label>
+              <input type="number" id="qtyM" min="0" value="0" placeholder="0">
+            </div>
+            <div class="size-item">
+              <label for="qtyG">G</label>
+              <input type="number" id="qtyG" min="0" value="0" placeholder="0">
+            </div>
+            <div class="size-item">
+              <label for="qtyGG">GG</label>
+              <input type="number" id="qtyGG" min="0" value="0" placeholder="0">
+            </div>
+            <div class="size-item">
+              <label for="qtyXG">XG</label>
+              <input type="number" id="qtyXG" min="0" value="0" placeholder="0">
+            </div>
+          </div>
 
           <label for="photo">Foto do Produto</label>
           <input type="file" id="photo" accept="image/*">
@@ -294,7 +354,7 @@
     </div>
   </div>
 
-  <!-- Vitrine pública (sempre visível para visitantes) -->
+  <!-- Vitrine pública -->
   <div id="publicView">
     <div class="card">
       <h2>Nossos Produtos</h2>
@@ -325,7 +385,6 @@
 
 <script>
   // ===================== CONFIGURAÇÃO =====================
-  // Altere a senha abaixo para a que você quiser
   const SENHA_DONO = "SV1239";
   // ========================================================
 
@@ -357,6 +416,15 @@
     }
   });
 
+  // Formata os tamanhos para exibição
+  function formatSizes(sizes) {
+    if (!sizes) return '';
+    const entries = Object.entries(sizes)
+      .filter(([_, qty]) => qty > 0)
+      .map(([size, qty]) => `<span>${size}: ${qty}</span>`);
+    return entries.length ? entries.join('') : '<span style="color:#9ca3af">Sem estoque</span>';
+  }
+
   // Renderizar produtos
   function renderProducts() {
     const html = products.length === 0 
@@ -367,7 +435,7 @@
             <div class="product-info">
               <h3>${p.name}</h3>
               <div class="price">R$ ${parseFloat(p.price).toFixed(2)}</div>
-              <div class="country">📍 ${p.country}</div>
+              <div class="sizes">${formatSizes(p.sizes)}</div>
               <p class="desc">${p.description}</p>
             </div>
           </div>
@@ -416,7 +484,6 @@
     }
   }
 
-  // Permitir Enter no campo de senha
   document.getElementById('password').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') verificarSenha();
   });
@@ -435,25 +502,38 @@
     const name = document.getElementById('name').value.trim();
     const price = document.getElementById('price').value;
     const description = document.getElementById('description').value.trim();
-    const country = document.getElementById('country').value;
     const photoFile = photoInput.files[0];
+
+    // Coleta as quantidades por tamanho
+    const sizes = {
+      PP: parseInt(document.getElementById('qtyPP').value) || 0,
+      P:  parseInt(document.getElementById('qtyP').value) || 0,
+      M:  parseInt(document.getElementById('qtyM').value) || 0,
+      G:  parseInt(document.getElementById('qtyG').value) || 0,
+      GG: parseInt(document.getElementById('qtyGG').value) || 0,
+      XG: parseInt(document.getElementById('qtyXG').value) || 0
+    };
 
     if (photoFile) {
       const reader = new FileReader();
       reader.onload = function(e) {
-        salvarProduto(name, price, description, country, e.target.result);
+        salvarProduto(name, price, description, sizes, e.target.result);
       };
       reader.readAsDataURL(photoFile);
     } else {
-      salvarProduto(name, price, description, country, null);
+      salvarProduto(name, price, description, sizes, null);
     }
   });
 
-  function salvarProduto(name, price, description, country, photo) {
-    products.push({ name, price, description, country, photo });
+  function salvarProduto(name, price, description, sizes, photo) {
+    products.push({ name, price, description, sizes, photo });
     localStorage.setItem('products', JSON.stringify(products));
     renderProducts();
     form.reset();
+    // Reseta os campos de quantidade para 0
+    ['qtyPP','qtyP','qtyM','qtyG','qtyGG','qtyXG'].forEach(id => {
+      document.getElementById(id).value = 0;
+    });
     photoPreview.style.display = 'none';
   }
 
